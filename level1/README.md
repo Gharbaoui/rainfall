@@ -45,4 +45,38 @@ to recover the old ebp
 python -c print('B'*76 + '\x08\x04\x84\x44'[::-1])
 ```
 
+why `[::-1]` just to reverse the chars
+
 ![](./pics/11.png)
+
+oh no segemantion fault let's see what is going in gdb
+
+![](./pics/12.png)
+
+well something weird here because I expected the address of run should after that 0x42 which is ascii for B, maybe that normal copy is not good, let's try to read from file inside gdb
+
+![](./pics/13.png)
+![](./pics/14.png)
+![](./pics/15.png)
+![](./pics/16.png)
+
+as you can see now we jumped to run
+
+![](./pics/17.png)
+
+as you can see there's call to system with `/bin/sh` which is greate now
+
+so now why how can I read before that segfault, well what is happning now is that we jump to run there's the call to system, and after ret to some random place that causes the segfault, what we could do is provide the payload and hold stdin so sh that was created by system is stuck and then we
+do what we want
+
+```
+cat /tmp/input - | ./level1
+```
+
+what we are doing here is providing the payload to gets function, and hold stdin for
+
+#### Password For level2
+
+```
+53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
+```

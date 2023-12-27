@@ -1,3 +1,3 @@
 #### Plt/Got
 
-[](./plt_got.md)
+[plt got](./plt_got.md)

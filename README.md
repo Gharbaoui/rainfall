@@ -7,3 +7,4 @@
 - [level 4](./level4/)
 - [level 5](./level5/)
 - [level 6](./level6/)
+- [level 7](./level7/)

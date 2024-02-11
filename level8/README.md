@@ -1,0 +1,197 @@
+### Level 8
+
+### Basic Recon
+![](./pics/1.png)
+
+![](./pics/2.png)
+
+![](./pics/3.png)
+
+
+first we call printf like this
+```c
+printf(
+    "%p, %p \n",
+    0x0,
+    0x0
+);
+```
+
+why ? no idea!
+
+![](./pics/4.png)
+
+there's call to fgets
+```c
+fgets(
+    0xbffff6a0, // dst
+    0x80, // 128
+    0xb7fd1ac0 // which is FSTREAM pointer, in other words our input
+);
+```
+
+and by the way here's the input data
+
+![](./pics/5.png)
+![](./pics/6.png)
+
+![](./pics/7.png)
+
+so here there's comparison that is happening between my input and the string `auth `, and if not we will
+jump to `main+222` now we have the choice either to gamble that we should provide `auth ` as input, but I would like
+to be sure, let's see what is going on `main+222`
+
+![](./pics/8.png)
+
+so what happend now, well we got ourselves into another comparison, and we skipped call to `malloc`
+and `scas` aka scan string and  and `strcpy` that is writing to this location `0x8049aac` SO WHAT? let's continue and see
+
+but now we are facing another comparison with the value `reset` so we will jump again to another place `main+276`
+
+![](./pics/9.png)
+
+after `jne main+276`
+
+![](./pics/10.png)
+
+we skipped call to `free` SO WHAT? let's continue again there's another comparison with `service`
+skip again!!! and I encountered another comparison with `login` skip it also for now
+
+![](./pics/12.png)
+
+there's another one with `login`
+
+![](./pics/13.png)
+
+but as you can see there's that `jne main+16` that would be bad it's going to be loop we better enter
+at least `login` and see
+
+![](./pics/14.png)
+
+we did skip that now, are we good? well no
+
+![](./pics/15.png)
+
+well that location `0x8049aac` shall contains something, wait what so it's not good idea to skip
+that strcpy
+
+here are the strings that we have compared against
+
+`auth `: skiped malloc and strcpy
+`reset`: skiped free
+`service` and `login`
+
+#### More Details
+
+###### First Iteration
+
+here's how the memory look like before the first call to `printf`
+
+```c
+printf (
+    "%p, %p\n",
+    *(0x8049aac),
+    *(0x8049ab0)
+);
+```
+
+![](./pics/16.png)
+
+and pointer to the first parameter will be in the last row of the stack in the picture
+
+![](./pics/17.png)
+
+and here's how `fgets` is called
+
+```c
+fgets(
+    0xbffff6a0,
+    0x80,
+    our_input
+);
+```
+
+![](./pics/18.png)
+![](./pics/19.png)
+
+compare after `fgets`
+
+![](./pics/20.png)
+
+after `malloc`
+
+![](./pics/21.png)
+![](./pics/22.png)
+
+starting from `main+156`
+
+![](./pics/23.png)
+![](./pics/24.png)
+![](./pics/25.png)
+![](./pics/26.png)
+
+starting from `main+184` (string scan)
+
+before `scas` instruction
+
+![](./pics/26.png)
+
+after `scas` instruction
+
+![](./pics/27.png)
+
+as you can see the ZF flag is sent which means that the compared values are equal so there's no jump coming
+
+![](./pics/28.png)
+
+
+here's how `strcpy` is called
+
+```c
+strcpy(
+    0x0804a008, // memory location that wax return by malloc
+    0xbffff6a5, // pointing to the top of the stack
+    // it's pointing at 5th of our input for example if our input were `auth abc..`
+    // 0xbffff6a5 would start from `abc..`
+);
+```
+
+`strcpy` will copy what was there to that memory location.
+
+after that there's comparison with `reset` which I don't want it to be success because if it did it
+will free the memory which I don't want
+
+![](./pics/29.png)
+
+after `main+276` and yes I did skip `free`
+
+![](./pics/30.png)
+
+as you can see there's another compare to `service` which it will be skiped well for now at least
+because the iteration that will have `service` will do strdup and strdup will copy what was after the first 7 characters from our input
+for example `auth aabcd...`, `strdup` will start from `bcd..` and so on.
+
+compare with `login`
+
+![](./pics/31.png)
+
+
+from the pic below you can see this `mov eax, DWORD PTR [eax+0x20]` should not be zero, but how would I do that
+well our input is being copied to the location `eax` but that location has space of 4 because of the previous malloc(4)
+but we have `strdup` if it got called with big enough input it will fill what is after that eax exactly it will start at `0x804a018`
+and `eax+0x20` = `0x804a028`, so how big is big enough, `0x804a028 - 0x804a018 = 16`, so we need 16 chars after `service` like this
+`serviceAAAAAAAAAAAAAAAA`
+
+![](./pics/32.png)
+![](./pics/34.png)
+![](./pics/35.png)
+
+#### How To Exploit
+>input these `auth `, `serviceAAAAAAAAAAAAAAAA` and `login`
+
+![](./pics/36.png)
+
+#### Password for level9
+```
+c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a
+```

@@ -12,3 +12,4 @@
 - [level 9](./level9/)
 - [bonus 0](./bonus0/)
 - [bonus 1](./bonus1/)
+- [bonus 2](./bonus2/)

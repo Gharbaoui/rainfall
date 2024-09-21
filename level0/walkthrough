@@ -1,1 +1,37 @@
-Ressources/README.md
+### Level 0
+
+![](./Ressources/pics/1.png)
+![](./Ressources/pics/2.png)
+![](./Ressources/pics/3.png)
+![](./Ressources/pics/4.png)
+
+there's call to atoi so maybe we should input something
+
+![](./Ressources/pics/5.png)
+
+so what should we input
+
+![](./Ressources/pics/6.png)
+
+as you can see eax aka our input is being compared to 0x1a7(423)
+
+![](./Ressources/pics/7.png)
+
+well that Permission denied, just because we are in the wrong
+directory
+
+![](./Ressources/pics/8.png)
+
+![](./Ressources/pics/9.png)
+
+is this the password well let's try it
+
+![](./Ressources/pics/10.png)
+
+well yes
+
+#### Password For Level1
+
+```
+1fe8a524fa4bec01ca4ea2a869af2a02260d4a7d5fe7e7c24d8617e6dca12d3a
+```

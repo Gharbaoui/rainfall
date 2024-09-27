@@ -11,7 +11,7 @@
 
 it seems bad there's no call to `o` and we are using `fgets` so no overflow is possible, and even if possible we can not do it because we are exiting before we reach `ret` instruction,
 
-[system instead of exit](../explained/plt_got.md)
+[system instead of exit](https://github.com/Gharbaoui/rainfall/blob/master/explained/plt_got.md)
 
 well now you can see that we can do some tricks maybe if we filled that table with fake addresses like maybe the address of exit start to point to system directly!
 
